@@ -6,11 +6,11 @@ Eine Sammlung von **PowerShell-Skripten** für die Bereitstellung und Konfigurat
 
 ## Inhaltsverzeichnis
 
-  * [`disable_fast_startup.ps1`](https://www.google.com/search?q=%23disable_fast_startup.ps1)
-  * [`firewallsettingsRDP.ps1`](https://www.google.com/search?q=%23firewallsettingsrdp.ps1)
-  * [`networkPrivate_v2.ps1`](https://www.google.com/search?q=%23networkprivate_v2.ps1)
-  * [Allgemeine Hinweise](https://www.google.com/search?q=%23allgemeine-hinweise)
-
+  * [`disable_fast_startup.ps1`](https://github.com/Nirlau64/intunescripts/blob/main/disable_fast_startup.ps1)
+  * [`firewallsettingsRDP.ps1`](https://github.com/Nirlau64/intunescripts/blob/main/firewallsettingsRDP.ps1)
+  * [`networkPrivate_v2.ps1`](https://github.com/Nirlau64/intunescripts/blob/main/networkPrivate_v2.ps1)
+  * Allgemeine Hinweise
+    
 -----
 
 ## Skript-Übersicht
