@@ -19,12 +19,22 @@ Start-Transcript -Path $logFile -Append -Force
 
 Write-Output "`n=== $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ==="
 
-# Prüfe 802.1X
+# Prüfe 802.1X auf allen LAN-Interfaces
 $lan = netsh lan show interfaces 2>&1
-if ($lan -match "(Authentication.*:\s*Authenticated|Authentifizierung war erfolgreich)") {
-    Write-Output "802.1X Authentifizierung erkannt"
+$authenticatedInterface = $null
+
+# Finde das Interface mit aktiver 802.1X-Authentifizierung
+$lan -split "`n" | ForEach-Object {
+    if ($_ -match "^(\S+)\s+" -and $_ -match "(Authentifizierung erfolgreich|Authentication.*:\s*Authenticated)") {
+        $authenticatedInterface = $matches[1]
+        Write-Output "Interface mit 802.1X Authentifizierung gefunden: $authenticatedInterface"
+    }
+}
+
+if ($authenticatedInterface) {
+    Write-Output "Nutze Adapter-Name als Identifikator: $authenticatedInterface"
     
-    # Ändere alle öffentlichen Profile auf Privat (Registry-basiert)
+    # Finde das Profil für diesen Adapter in der Registry
     $regPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\NetworkList\Profiles"
     $profiles = Get-ChildItem -Path $regPath -ErrorAction SilentlyContinue
     $changedCount = 0
@@ -32,9 +42,11 @@ if ($lan -match "(Authentication.*:\s*Authenticated|Authentifizierung war erfolg
     foreach ($profile in $profiles) {
         $category = (Get-ItemProperty -Path $profile.PSPath -Name "Category" -ErrorAction SilentlyContinue).Category
         $profileName = (Get-ItemProperty -Path $profile.PSPath -Name "ProfileName" -ErrorAction SilentlyContinue).ProfileName
+        $description = (Get-ItemProperty -Path $profile.PSPath -Name "Description" -ErrorAction SilentlyContinue).Description
         
-        if ($category -eq 0) {
-            Write-Output "Setze '$profileName' auf Privat"
+        # Prüfe, ob dieses Profil dem authentifizierten Adapter entspricht
+        if (($profileName -eq $authenticatedInterface -or $description -match $authenticatedInterface) -and $category -eq 0) {
+            Write-Output "Setze '$profileName' (802.1X-Adapter: $authenticatedInterface) auf Privat"
             Set-ItemProperty -Path $profile.PSPath -Name "Category" -Value 1 -ErrorAction SilentlyContinue
             Set-ItemProperty -Path $profile.PSPath -Name "CategoryType" -Value 0 -ErrorAction SilentlyContinue
             $changedCount++
